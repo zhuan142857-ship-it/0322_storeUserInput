@@ -30,4 +30,12 @@ sw: time.Stopwatch
 
 inputs: [dynamic]UserInput
 
-camera := Camera{Position{500, 500}, 5}
+camera := Camera{Position{0, 0}, 1}
+
+keyUp: bool
+keyDown: bool
+keyLeft: bool
+keyRight: bool
+
+keyE: bool
+keyQ: bool

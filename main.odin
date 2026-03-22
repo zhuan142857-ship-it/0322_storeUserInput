@@ -32,13 +32,46 @@ wnd_proc :: proc "stdcall" (
 			shape = Shape.triangle
 		}
 		if wParam == win.VK_UP {
-			time.stopwatch_start(&sw)
-
-
+			keyUp = true
 		}
+
+		if wParam == win.VK_DOWN {
+			keyDown = true
+		}
+		if wParam == win.VK_LEFT {
+			keyLeft = true
+		}
+		if wParam == win.VK_RIGHT {
+			keyRight = true
+		}
+		if wParam == win.VK_E {
+			keyE = true
+		}
+		if wParam == win.VK_Q {
+			keyQ = true
+		}
+
+
 	case win.WM_KEYUP:
 		if wParam == win.VK_UP {
-			time.stopwatch_reset(&sw)
+			keyUp = false
+		}
+
+		if wParam == win.VK_DOWN {
+			keyDown = false
+		}
+		if wParam == win.VK_LEFT {
+			keyLeft = false
+		}
+		if wParam == win.VK_RIGHT {
+			keyRight = false
+		}
+
+		if wParam == win.VK_E {
+			keyE = false
+		}
+		if wParam == win.VK_Q {
+			keyQ = false
 		}
 
 	case win.WM_LBUTTONDOWN:
@@ -59,8 +92,6 @@ wnd_proc :: proc "stdcall" (
 		currentInput.position = realXY
 		currentInput.shape = shape
 		append(&inputs, currentInput)
-
-		fmt.println(inputs[:])
 
 		vertex_data := addShapeToRealData(inputs[:])
 		defer delete(vertex_data)
@@ -418,6 +449,15 @@ main :: proc() {
 		dt := cast(f32)time.duration_seconds(duration)
 
 
+		if keyUp == true do camera.offset.y += 10
+		if keyDown == true do camera.offset.y -= 10
+		if keyLeft == true do camera.offset.x -= 10
+		if keyRight == true do camera.offset.x += 10
+
+		if keyE == true do camera.scale -= 0.005
+		if keyQ == true do camera.scale += 0.005
+
+
 		msg: win.MSG
 		for win.PeekMessageW(&msg, nil, 0, 0, win.PM_REMOVE) {
 			if msg.message == win.WM_QUIT {
@@ -454,21 +494,26 @@ main :: proc() {
 		device_context->IASetVertexBuffers(0, 1, &vertex_buffer, &vertex_stride, &vertex_offset)
 
 
+		//舒服的点在于,我明确知道这里的vertex_data每一帧都销毁.
+		vertex_data := addShapeToRealData(inputs[:])
+		defer delete(vertex_data)
+		vertex_count = u32(len(vertex_data) / 6)
+
+
 		// if len(vertex_data) > 3 {
 		// 	for i := 0; i < len(vertex_data); i += 6 {
-		// 		vertex_data[i + 1] += 0 // 0.00031
+		// 		vertex_data[i + 1] += 1 // 0.00031
 		// 	}
 		// }
-		// vertex_count = u32(len(vertex_data) / 6)
 
 
-		// mapped: d3d11.MAPPED_SUBRESOURCE
-		// device_context->Map(vertex_buffer, 0, .WRITE_DISCARD, {}, &mapped)
-		// dst := ([^]f32)(mapped.pData)
-		// for i in 0 ..< len(vertex_data) {
-		// 	dst[i] = vertex_data[i]
-		// }
-		// device_context->Unmap(vertex_buffer, 0)
+		mapped: d3d11.MAPPED_SUBRESOURCE
+		device_context->Map(vertex_buffer, 0, .WRITE_DISCARD, {}, &mapped)
+		dst := ([^]f32)(mapped.pData)
+		for i in 0 ..< len(vertex_data) {
+			dst[i] = vertex_data[i]
+		}
+		device_context->Unmap(vertex_buffer, 0)
 
 
 		device_context->Draw(vertex_count, 0)

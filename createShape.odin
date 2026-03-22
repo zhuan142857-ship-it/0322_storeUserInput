@@ -22,9 +22,13 @@ addShapeToRealData :: proc(inputs: []UserInput) -> []f32 {
 		}
 
 		vertex_camera := make([]Position, len(verticesSlice), context.temp_allocator)
+
+		center_x: f32 = WIDTH / 2.0
+		center_y: f32 = HEIGHT / 2.0
 		for v, i in verticesSlice {
-			vertex_camera[i].x = (v.x - camera.offset.x) / camera.scale
-			vertex_camera[i].y = (v.y - camera.offset.y) / camera.scale
+			// 围绕屏幕中心进行缩放
+			vertex_camera[i].x = ((v.x - camera.offset.x) - center_x) / camera.scale + center_x
+			vertex_camera[i].y = ((v.y - camera.offset.y) - center_y) / camera.scale + center_y
 		}
 
 
