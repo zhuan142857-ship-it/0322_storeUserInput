@@ -4,10 +4,9 @@ import "core:fmt"
 import "core:slice"
 
 
-addShapeToRealData :: proc(inputs: []UserInput) {
+addShapeToRealData :: proc(inputs: []UserInput) -> []f32 {
 
-	clear(&vertex_data)
-
+	vertex_data: [dynamic]f32
 	for v in inputs {
 
 		verticesSlice: []Position
@@ -45,8 +44,13 @@ addShapeToRealData :: proc(inputs: []UserInput) {
 		}
 
 		append(&vertex_data, ..vertex_final[:])
+
 	}
 
-	fmt.println(vertex_data[:])
-
+	//vvv = vertex_data[:]
+	//这里有两个原因不能delete
+	//1:在函数外面delete,因为外面会用到我的返回值
+	//2:虽然多了一层倒手(dynamic-->>>>slice),但是指向的是同一个地方
+	//如果这里delete,那么就是"双重"delete
+	return vertex_data[:]
 }

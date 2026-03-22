@@ -60,8 +60,10 @@ wnd_proc :: proc "stdcall" (
 		currentInput.shape = shape
 		append(&inputs, currentInput)
 
+		fmt.println(inputs[:])
 
-		addShapeToRealData(inputs[:])
+		vertex_data := addShapeToRealData(inputs[:])
+		defer delete(vertex_data)
 
 		vertex_count = u32(len(vertex_data) / 6)
 
@@ -89,8 +91,8 @@ main :: proc() {
 	hInstance := win.HINSTANCE(win.GetModuleHandleW(nil))
 
 
-	vertex_data = make([dynamic]f32, 0, 10000)
-	defer delete(vertex_data)
+	// vertex_data = make([dynamic]f32, 0, 10000)
+	// defer delete(vertex_data)
 	// Open a window
 	hWnd: win.HWND
 	{
@@ -373,8 +375,17 @@ main :: proc() {
 	vertex_stride: u32
 	vertex_offset: u32
 	{
+		vertex_data := addShapeToRealData(inputs[:])
+
+		//dx11不允许0上传,所以随便分配一下.
+		if len(vertex_data) == 0 {
+			vertex_data = make([]f32, 10)
+		}
+		defer delete(vertex_data)
+
+		vertex_count := u32(len(vertex_data) / 6)
+
 		vertex_stride = size_of(f32) * 6
-		vertex_count = u32(len(vertex_data) / 6)
 		vertex_offset = 0
 
 		vertex_buffer_desc := d3d11.BUFFER_DESC {
@@ -443,21 +454,21 @@ main :: proc() {
 		device_context->IASetVertexBuffers(0, 1, &vertex_buffer, &vertex_stride, &vertex_offset)
 
 
-		if len(vertex_data) > 3 {
-			for i := 0; i < len(vertex_data); i += 6 {
-				vertex_data[i + 1] += 0 // 0.00031
-			}
-		}
-		vertex_count = u32(len(vertex_data) / 6)
+		// if len(vertex_data) > 3 {
+		// 	for i := 0; i < len(vertex_data); i += 6 {
+		// 		vertex_data[i + 1] += 0 // 0.00031
+		// 	}
+		// }
+		// vertex_count = u32(len(vertex_data) / 6)
 
 
-		mapped: d3d11.MAPPED_SUBRESOURCE
-		device_context->Map(vertex_buffer, 0, .WRITE_DISCARD, {}, &mapped)
-		dst := ([^]f32)(mapped.pData)
-		for i in 0 ..< len(vertex_data) {
-			dst[i] = vertex_data[i]
-		}
-		device_context->Unmap(vertex_buffer, 0)
+		// mapped: d3d11.MAPPED_SUBRESOURCE
+		// device_context->Map(vertex_buffer, 0, .WRITE_DISCARD, {}, &mapped)
+		// dst := ([^]f32)(mapped.pData)
+		// for i in 0 ..< len(vertex_data) {
+		// 	dst[i] = vertex_data[i]
+		// }
+		// device_context->Unmap(vertex_buffer, 0)
 
 
 		device_context->Draw(vertex_count, 0)

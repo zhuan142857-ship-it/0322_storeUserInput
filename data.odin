@@ -21,17 +21,12 @@ device_context: ^d3d11.IDeviceContext
 hWnd: win.HWND
 hInstance := win.HINSTANCE(win.GetModuleHandleW(nil))
 
-vertex_data: [dynamic]f32
 vertex_count: u32
 
 shape := Shape.triangle
 
 sw: time.Stopwatch
 
-UserInput :: struct {
-	position: Position,
-	shape:    Shape,
-}
 
 inputs: [dynamic]UserInput
 
